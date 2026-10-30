@@ -37,6 +37,13 @@ class Settings:
         self.VIETQR_ACCOUNT_NAME: str = os.getenv("VIETQR_ACCOUNT_NAME", "HA TIEN DUNG").strip()
         self.PAYMENT_PREFIX: str = os.getenv("PAYMENT_PREFIX", "NAP").strip()
 
+        # Cấu hình BOT đọc Email biến động số dư tự động 24/7 (Gmail IMAP)
+        self.ENABLE_EMAIL_AUTO_BANK: bool = os.getenv("ENABLE_EMAIL_AUTO_BANK", "true").strip().lower() in ("true", "1", "yes")
+        self.GMAIL_EMAIL: str = os.getenv("GMAIL_EMAIL", "").strip()
+        self.GMAIL_APP_PASSWORD: str = os.getenv("GMAIL_APP_PASSWORD", "").strip()
+        raw_interval = os.getenv("EMAIL_CHECK_INTERVAL", "10").strip()
+        self.EMAIL_CHECK_INTERVAL: int = int(raw_interval) if raw_interval.isdigit() else 10
+
     @property
     def is_api_key_valid(self) -> bool:
         """Kiểm tra xem phương thức xác thực đã được cấu hình hợp lệ chưa."""

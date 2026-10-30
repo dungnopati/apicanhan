@@ -61,6 +61,10 @@ async def lifespan(app: FastAPI):
             pass
     asyncio.create_task(_auto_open_dashboard())
 
+    # Khoi dong Bot doc email bien dong so du tu dong 24/7
+    from app.services.email_poller import run_email_poller_background
+    asyncio.create_task(run_email_poller_background())
+
     yield
     # Khi tắt máy chủ: đóng an toàn mọi client có kết nối nền
     for c in list(_cached_clients.values()):

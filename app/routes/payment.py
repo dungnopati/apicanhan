@@ -295,6 +295,22 @@ async def mock_deposit(req: MockDepositRequest):
     }
 
 
+
+@payment_router.post("/api/payment/scan-emails", summary="[Bot Gmail] Kích Hoạt Quét Email Biến Động Số Dư Ngay")
+async def trigger_scan_emails():
+    """Chủ động kích hoạt quét hòm thư Gmail ngay lập tức."""
+    from app.services.email_poller import scan_gmail_inbox
+    found = scan_gmail_inbox()
+    return {
+        "status": "success",
+        "message": f"Da quet xong hop thu Gmail! Phat hien {len(found)} giao dich moi.",
+        "transactions_detected": found,
+        "config": {
+            "gmail_user": settings.GMAIL_EMAIL or "Chua cau hinh",
+            "bot_enabled": settings.ENABLE_EMAIL_AUTO_BANK
+        }
+    }
+
 @payment_router.get("/payment-demo", response_class=HTMLResponse, summary="Giao Diện Demo Nạp Game")
 async def payment_demo_page():
     template_file = TEMPLATE_DIR / "payment_demo.html"
