@@ -54,9 +54,12 @@ def parse_bank_transaction(subject: str, body: str) -> Optional[Dict[str, Any]]:
     Tự động phân tích nội dung email từ Techcombank, MoMo, MBBank, v.v.
     Bóc tách: Số tiền nhận được và Nội dung chuyển khoản.
     """
-    full_text = f"{subject}\n{body}"
-    clean_text = re.sub(r'<[^>]+>', ' ', full_text)  # Bỏ thẻ HTML
-    clean_text = re.sub(r'\s+', ' ', clean_text)     # Rút gọn khoảng trắng
+    raw_source = f"{subject}\n{body}"
+    # Loại bỏ triệt để thẻ style, script của email HTML
+    no_style = re.sub(r'<style[^>]*>.*?</style>', ' ', raw_source, flags=re.DOTALL | re.IGNORECASE)
+    no_script = re.sub(r'<script[^>]*>.*?</script>', ' ', no_style, flags=re.DOTALL | re.IGNORECASE)
+    clean_text = re.sub(r'<[^>]+>', ' ', no_script)
+    clean_text = re.sub(r'\s+', ' ', clean_text).strip()
 
     # 1. Tìm số tiền nạp: +50,000 VND hoặc 50.000 VND hoặc 50000 d
     # Thường Techcombank/MoMo ghi: "Số tiền: +50,000 VND" hoặc "PS: +50,000 VND"
@@ -119,12 +122,8 @@ def scan_gmail_inbox() -> List[Dict[str, Any]]:
         mail.login(gmail_user, gmail_pass)
         mail.select("INBOX")
 
-        # Tìm các email từ ngân hàng hoặc có chứa từ khóa số dư nhận trong 1 ngày gần đây
-        # Hỗ trợ tìm kiếm email Techcombank, MoMo, MBBank...
-        status, messages = mail.search(None, '(OR OR (FROM "techcombank") (FROM "momo") (SUBJECT "số dư"))')
-        if status != "OK" or not messages[0]:
-            # Nếu bộ lọc trên không thấy, tìm 10 email mới nhất trong hộp thư
-            status, messages = mail.search(None, "ALL")
+        # Lấy danh sách các email gần đây nhất (an toàn không lỗi ký tự)
+        status, messages = mail.search(None, "ALL")
 
         if status != "OK" or not messages[0]:
             mail.close()
