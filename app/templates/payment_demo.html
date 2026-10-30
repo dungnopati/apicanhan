@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cổng Nạp Tiền Tự Động 24/7 - {{ MERCHANT_NAME }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #0f172a; color: #f8fafc; min-height: 100vh; padding: 30px 15px; display: flex; justify-content: center; }
+        .container { max-width: 800px; width: 100%; }
+        .card { background: #1e293b; border: 1px solid #334155; border-radius: 14px; padding: 24px; margin-bottom: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); }
+        h1 { font-size: 22px; color: #38bdf8; margin-bottom: 8px; }
+        p.sub { color: #94a3b8; font-size: 14px; margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-group { margin-bottom: 14px; }
+        label { display: block; font-size: 13px; color: #cbd5e1; margin-bottom: 6px; font-weight: 600; }
+        input, select { width: 100%; padding: 10px 12px; background: #0f172a; border: 1px solid #475569; border-radius: 8px; color: white; font-size: 14px; outline: none; }
+        input:focus { border-color: #38bdf8; }
+        button { width: 100%; padding: 12px; background: #0284c7; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #0369a1; }
+        .btn-mock { background: #10b981; margin-top: 10px; }
+        .btn-mock:hover { background: #059669; }
+        .qr-box { text-align: center; display: none; background: #0f172a; border-radius: 12px; padding: 20px; border: 1px dashed #38bdf8; }
+        .qr-box img { max-width: 260px; width: 100%; border-radius: 8px; background: white; padding: 6px; margin: 12px 0; }
+        .tag { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; background: #eab308; color: #000; }
+        .tag.success { background: #10b981; color: #fff; }
+        .details { font-size: 14px; line-height: 1.8; text-align: left; background: #1e293b; padding: 12px; border-radius: 8px; margin-top: 10px; }
+        .bank-badge { background: #0284c7; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-left: 6px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>🎮 Cổng Nạp Tiền Tự Động 24/7 ({{ MERCHANT_NAME }})</h1>
+            <p class="sub">Hệ thống nhận tiền qua MoMo / VietQR và tự động cộng đồ vào Game</p>
+
+            <div class="form-group">
+                <label>Tên nhân vật / ID người chơi:</label>
+                <input type="text" id="playerId" value="Player_Top1" placeholder="Ví dụ: Player123">
+            </div>
+
+            <div class="grid">
+                <div class="form-group">
+                    <label>Chọn Game / Dịch vụ:</label>
+                    <select id="gameId">
+                        <option value="ROBLOX_PET">Game Roblox (Cộng Pet / Robux)</option>
+                        <option value="MINECRAFT_COIN">Game Minecraft (Cộng Xu)</option>
+                        <option value="SHOP_ACC">Shop Bán Tài Khoản / Vật Phẩm</option>
+                        <option value="WEB_VIP">Nâng Cấp Gói VIP</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Mệnh giá nạp (VNĐ):</label>
+                    <select id="amount">
+                        <option value="10000">10,000 đ</option>
+                        <option value="20000">20,000 đ</option>
+                        <option value="50000" selected>50,000 đ</option>
+                        <option value="100000">100,000 đ</option>
+                        <option value="200000">200,000 đ</option>
+                        <option value="500000">500,000 đ</option>
+                    </select>
+                </div>
+            </div>
+
+            <button onclick="createOrder()">⚡ TẠO MÃ QR NẠP TIỀN</button>
+        </div>
+
+        <div class="card qr-box" id="qrContainer">
+            <span class="tag" id="statusTag">ĐANG CHỜ THANH TOÁN (PENDING)</span>
+            <h3 style="margin-top: 12px; font-size: 16px;">Dùng MoMo hoặc App Ngân Hàng Quét Mã</h3>
+            <img id="qrImage" src="" alt="Mã QR VietQR">
+            
+            <div class="details">
+                <div><b>Mã đơn hàng:</b> <span id="orderIdText" style="color: #38bdf8;"></span></div>
+                <div><b>Số tiền:</b> <span id="amountText" style="color: #4ade80;"></span></div>
+                <div><b>Nội dung chuyển khoản (bắt buộc):</b> <span id="contentText" style="color: #facc15; font-size: 16px; font-weight: bold;"></span></div>
+            </div>
+
+            <button class="btn-mock" onclick="triggerMock()">🧪 [TEST] Bấm để Giả Lập Nạp Tiền Thành Công (Không Cần Tiền Thật)</button>
+        </div>
+    </div>
+
+    <script>
+        let currentOrderId = null;
+        let checkInterval = null;
+
+        async function createOrder() {
+            const playerId = document.getElementById('playerId').value;
+            const gameId = document.getElementById('gameId').value;
+            const amount = parseInt(document.getElementById('amount').value);
+
+            const res = await fetch('/api/payment/create-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ player_id: playerId, game_id: gameId, amount: amount })
+            });
+            const data = await res.json();
+            if(data.status === 'success') {
+                currentOrderId = data.order_id;
+                document.getElementById('qrContainer').style.display = 'block';
+                document.getElementById('qrImage').src = data.qr_code_url;
+                document.getElementById('orderIdText').innerText = data.order_id;
+                document.getElementById('amountText').innerText = Number(data.amount).toLocaleString('vi-VN') + ' đ';
+                document.getElementById('contentText').innerText = data.transfer_content;
+
+                const statusTag = document.getElementById('statusTag');
+                statusTag.className = 'tag';
+                statusTag.innerText = 'ĐANG CHỜ THANH TOÁN (PENDING)';
+
+                if(checkInterval) clearInterval(checkInterval);
+                checkInterval = setInterval(checkOrderStatus, 3000);
+            }
+        }
+
+        async function checkOrderStatus() {
+            if(!currentOrderId) return;
+            const res = await fetch('/api/payment/order/' + currentOrderId);
+            const data = await res.json();
+            if(data.status === 'SUCCESS') {
+                clearInterval(checkInterval);
+                const statusTag = document.getElementById('statusTag');
+                statusTag.className = 'tag success';
+                statusTag.innerText = '🎉 ĐÃ NẠP TIỀN THÀNH CÔNG! ĐÃ CỘNG ĐỒ CHO GAME!';
+                alert('🎉 Chúc mừng! Tiền đã về và vật phẩm đã được cộng tự động vào tài khoản ' + data.player_id + '!');
+            }
+        }
+
+        async function triggerMock() {
+            if(!currentOrderId) return;
+            const res = await fetch('/api/payment/mock-deposit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ order_id: currentOrderId })
+            });
+            const data = await res.json();
+            checkOrderStatus();
+        }
+    </script>
+</body>
+</html>
+
