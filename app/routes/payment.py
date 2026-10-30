@@ -140,10 +140,21 @@ async def transaction_callback(request: Request):
 
     # Tìm nội dung chuyển khoản
     content = ""
-    for key in ["content", "description", "noiDung", "msg", "addInfo", "remark"]:
+    for key in ["content", "description", "noiDung", "msg", "addInfo", "remark", "text", "body", "message"]:
         if key in data and data[key]:
             content = str(data[key]).strip()
             break
+
+    # Neu nhan thong bao tho tu Android (MoMo/Techcombank/SMS), tu dong boc tach so tien va ma don
+    if amount <= 0 or ("NAP" not in content and len(content) > 15):
+        raw_text = str(data.get("text") or data.get("body") or data.get("message") or content or payload)
+        from app.services.email_poller import parse_bank_transaction
+        parsed = parse_bank_transaction(subject="", body=raw_text)
+        if parsed:
+            if amount <= 0 and parsed.get("amount"):
+                amount = parsed["amount"]
+            if parsed.get("content"):
+                content = parsed["content"]
 
     trans_id = str(data.get("transactionId") or data.get("id") or data.get("transId") or "")
     bank_acc = str(data.get("bankAccount") or data.get("accountNo") or settings.VIETQR_ACCOUNT_NO)

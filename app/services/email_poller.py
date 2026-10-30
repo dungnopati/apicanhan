@@ -88,7 +88,7 @@ def parse_bank_transaction(subject: str, body: str) -> Optional[Dict[str, Any]]:
     # 2. Tìm nội dung chuyển khoản (Ví dụ: NAP1234, NAP 5678, MUA ACC10)
     # Lấy từ khóa "Nội dung" / "Lời nhắn" / "Chi tiết" hoặc quét trực tiếp tiền tố NAP
     content = ""
-    content_match = re.search(r'(?:Nội dung|Noi dung|Lời nhắn|Loi nhan|Mo ta|ND)[\s:]*([^\n\r<]{3,80})', full_text, re.IGNORECASE)
+    content_match = re.search(r'(?:Nội dung|Noi dung|Lời nhắn|Loi nhan|Mo ta|ND)[\s:]*([^\n\r<]{3,80})', clean_text, re.IGNORECASE)
     if content_match:
         content = content_match.group(1).strip()
     else:
