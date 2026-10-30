@@ -61,8 +61,10 @@ def grant_player_reward(order: Dict[str, Any], transaction: Dict[str, Any]):
 
 # ==================== CHUẨN VIETQR (TINGO PAY) ====================
 
-@payment_router.post("/vqr/api/token_generate", summary="VietQR - Lấy Token xác thực (Basic Auth)")
-@payment_router.post("/api/token_generate", summary="VietQR - Lấy Token xác thực")
+@payment_router.api_route("/vqr/api/token_generate", methods=["GET", "POST"], summary="VietQR - Lấy Token xác thực (Basic Auth)")
+@payment_router.api_route("/api/token_generate", methods=["GET", "POST"], summary="VietQR - Lấy Token xác thực")
+@payment_router.api_route("/vqr", methods=["GET", "POST"], summary="VietQR - Test endpoint")
+@payment_router.api_route("/vqr/", methods=["GET", "POST"], summary="VietQR - Test endpoint trailing slash")
 async def vqr_token_generate(authorization: Optional[str] = Header(None)):
     """
     Endpoint chuẩn VietQR yêu cầu để kích hoạt nút 'Test Get Token'.
