@@ -32,9 +32,9 @@ class Settings:
         self.VIETQR_MERCHANT_NAME: str = os.getenv("VIETQR_MERCHANT_NAME", "APICANHAN").strip()
         self.VIETQR_USERNAME: str = os.getenv("VIETQR_USERNAME", "admin").strip()
         self.VIETQR_PASSWORD: str = os.getenv("VIETQR_PASSWORD", "Apicanhan@2026").strip()
-        self.VIETQR_BANK_ID: str = os.getenv("VIETQR_BANK_ID", "MB").strip()
-        self.VIETQR_ACCOUNT_NO: str = os.getenv("VIETQR_ACCOUNT_NO", "0000000000").strip()
-        self.VIETQR_ACCOUNT_NAME: str = os.getenv("VIETQR_ACCOUNT_NAME", "CHU TAI KHOAN").strip()
+        self.VIETQR_BANK_ID: str = os.getenv("VIETQR_BANK_ID", "TCB").strip()
+        self.VIETQR_ACCOUNT_NO: str = os.getenv("VIETQR_ACCOUNT_NO", "7179717878").strip()
+        self.VIETQR_ACCOUNT_NAME: str = os.getenv("VIETQR_ACCOUNT_NAME", "HA TIEN DUNG").strip()
         self.PAYMENT_PREFIX: str = os.getenv("PAYMENT_PREFIX", "NAP").strip()
 
     @property
